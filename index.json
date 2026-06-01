@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evidence Digest — What does the research actually say?</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0D0D0D;
+    color: #e8e8e8;
+    font-family: Georgia, serif;
+    min-height: 100vh;
+    padding: 48px 20px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .header { text-align: center; margin-bottom: 40px; max-width: 560px; width: 100%; }
+  .eyebrow { font-size: 11px; letter-spacing: 5px; color: #F4A261; text-transform: uppercase; margin-bottom: 14px; font-family: sans-serif; }
+  h1 { font-size: clamp(28px, 6vw, 44px); font-weight: 700; line-height: 1.15; margin-bottom: 14px; }
+  h1 span { color: #F4A261; font-style: italic; }
+  .subtitle { color: #555; font-size: 14px; line-height: 1.7; font-family: sans-serif; max-width: 400px; margin: 0 auto; }
+  .search-wrap { width: 100%; max-width: 560px; margin-bottom: 32px; }
+  .search-row { display: flex; gap: 10px; }
+  .topic-input { flex: 1; background: #161616; border: 1px solid #2a2a2a; border-radius: 10px; padding: 16px 20px; color: #e8e8e8; font-size: 15px; outline: none; font-family: Georgia, serif; transition: border-color 0.2s; }
+  .topic-input:focus { border-color: #F4A261; }
+  .topic-input::placeholder { color: #3a3a3a; }
+  .go-btn { background: #F4A261; color: #0D0D0D; border: none; border-radius: 10px; padding: 16px 24px; font-weight: 700; font-size: 14px; cursor: pointer; font-family: sans-serif; white-space: nowrap; transition: opacity 0.2s; min-width: 110px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .go-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .examples { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .example-chip { background: #161616; border: 1px solid #2a2a2a; border-radius: 20px; padding: 6px 14px; font-size: 12px; color: #666; cursor: pointer; font-family: sans-serif; transition: all 0.2s; }
+  .example-chip:hover { border-color: #F4A261; color: #F4A261; }
+  .error { width: 100%; max-width: 560px; background: #1a0a0a; border: 1px solid rgba(248,113,113,0.3); border-radius: 10px; padding: 14px 18px; color: #f87171; font-size: 14px; margin-bottom: 24px; font-family: sans-serif; line-height: 1.6; display: none; }
+  .results { width: 100%; max-width: 560px; display: none; flex-direction: column; gap: 16px; }
+  .topic-label { font-size: 10px; letter-spacing: 4px; color: #444; text-transform: uppercase; font-family: sans-serif; }
+  .oneliner-card { background: linear-gradient(135deg, #1a1200, #140e00); border: 1px solid rgba(244,162,97,0.25); border-left: 3px solid #F4A261; border-radius: 10px; padding: 22px 24px; }
+  .card-label { font-size: 10px; letter-spacing: 3px; color: #F4A261; text-transform: uppercase; margin-bottom: 10px; font-family: sans-serif; }
+  .oneliner-text { font-size: 18px; line-height: 1.6; font-style: italic; color: #f0e8d8; }
+  .findings-card { background: #161616; border: 1px solid #2a2a2a; border-radius: 10px; padding: 22px 24px; }
+  .findings-label { font-size: 10px; letter-spacing: 3px; color: #555; text-transform: uppercase; margin-bottom: 18px; font-family: sans-serif; }
+  .finding { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 16px; }
+  .finding:last-child { margin-bottom: 0; }
+  .finding-num { min-width: 22px; height: 22px; border-radius: 50%; background: #1e1e1e; border: 1px solid #333; color: #F4A261; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 2px; font-family: sans-serif; flex-shrink: 0; }
+  .finding-text { font-size: 15px; line-height: 1.7; color: #ccc; }
+  .disclaimer { margin-top: 16px; font-size: 11px; color: #333; font-family: sans-serif; text-align: center; line-height: 1.6; }
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(13,13,13,0.3); border-top-color: #0D0D0D; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (max-width: 480px) { .search-row { flex-direction: column; } .go-btn { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="eyebrow">Evidence Digest</div>
+  <h1>What does the research<br><span>actually say?</span></h1>
+  <p class="subtitle">Stop relying on WhatsApp forwards.<br>Get the real science — in plain English.</p>
+</div>
+<div class="search-wrap">
+  <div class="search-row">
+    <input type="text" class="topic-input" id="topicInput" placeholder="Type any health topic..." onkeydown="if(event.key==='Enter') summarise()" />
+    <button class="go-btn" id="goBtn" onclick="summarise()">Check it →</button>
+  </div>
+  <div class="examples">
+    <span class="example-chip" onclick="useExample(this)">Turmeric for inflammation</span>
+    <span class="example-chip" onclick="useExample(this)">Vitamin D deficiency</span>
+    <span class="example-chip" onclick="useExample(this)">Intermittent fasting</span>
+    <span class="example-chip" onclick="useExample(this)">Screen time in children</span>
+    <span class="example-chip" onclick="useExample(this)">Omega-3 and heart health</span>
+  </div>
+</div>
+<div class="error" id="errorBox"></div>
+<div class="results" id="results">
+  <div class="topic-label" id="topicLabel"></div>
+  <div class="oneliner-card">
+    <div class="card-label">Bottom Line</div>
+    <div class="oneliner-text" id="oneliner"></div>
+  </div>
+  <div class="findings-card">
+    <div class="findings-label">What Grade A Research Shows</div>
+    <div id="findingsList"></div>
+  </div>
+  <div class="disclaimer">Based on systematic reviews, meta-analyses & high-quality RCTs only.<br>Not a substitute for medical advice.</div>
+</div>
+<script>
+  function useExample(el) { document.getElementById('topicInput').value = el.textContent; summarise(); }
+  function showError(msg) { const box = document.getElementById('errorBox'); box.textContent = msg; box.style.display = 'block'; }
+  function hideError() { document.getElementById('errorBox').style.display = 'none'; }
+  async function summarise() {
+    const topic = document.getElementById('topicInput').value.trim();
+    if (!topic) return;
+    hideError();
+    document.getElementById('results').style.display = 'none';
+    const btn = document.getElementById('goBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+    try {
+      const res = await fetch('/api/summarise', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ topic }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+      document.getElementById('topicLabel').textContent = 'Research on: ' + data.topic;
+      document.getElementById('oneliner').textContent = '\u201C' + data.oneliner + '\u201D';
+      const list = document.getElementById('findingsList');
+      list.innerHTML = data.findings.map((f, i) => `<div class="finding"><div class="finding-num">${i+1}</div><div class="finding-text">${f}</div></div>`).join('');
+      document.getElementById('results').style.display = 'flex';
+      document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch(e) { showError(e.message); }
+    finally { btn.disabled = false; btn.innerHTML = 'Check it →'; }
+  }
+</script>
+</body>
+</html>
